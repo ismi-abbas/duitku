@@ -4,30 +4,22 @@ import { createDefaultBudgetData } from "@/features/budget/constants"
 import type { BudgetData } from "@/features/budget/types"
 import { supabase } from "@/lib/supabase/client"
 
-const SNAPSHOT_ID = "primary-budget"
-const TABLE_NAME = "budget_snapshots"
-
-type SnapshotRow = {
-  id: string
-  payload: BudgetData
-}
-
 export async function loadBudgetSnapshot() {
   if (!supabase) {
     return null
   }
 
-  const { data, error } = await supabase
-    .from(TABLE_NAME)
-    .select("id, payload")
-    .eq("id", SNAPSHOT_ID)
-    .maybeSingle<SnapshotRow>()
+  const { data, error } = await supabase.rpc("get_budget_data")
 
   if (error) {
     throw error
   }
 
-  return data?.payload ?? null
+  if (!isValidBudgetData(data)) {
+    return null
+  }
+
+  return data
 }
 
 export async function saveBudgetSnapshot(data: BudgetData) {
@@ -35,9 +27,8 @@ export async function saveBudgetSnapshot(data: BudgetData) {
     return
   }
 
-  const { error } = await supabase.from(TABLE_NAME).upsert({
-    id: SNAPSHOT_ID,
-    payload: data,
+  const { error } = await supabase.rpc("save_budget_data", {
+    input_payload: data,
   })
 
   if (error) {
@@ -54,4 +45,18 @@ export function replaceBudgetData(
   nextData: BudgetData
 ) {
   setData(nextData)
+}
+
+function isValidBudgetData(value: unknown): value is BudgetData {
+  if (!value || typeof value !== "object") {
+    return false
+  }
+
+  const candidate = value as BudgetData
+  return (
+    typeof candidate.selectedMonth === "string" &&
+    !!candidate.months &&
+    typeof candidate.months === "object" &&
+    Object.keys(candidate.months).length > 0
+  )
 }
