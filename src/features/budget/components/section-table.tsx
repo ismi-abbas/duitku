@@ -157,7 +157,7 @@ export function SectionTable<Section extends BudgetSection>({
 
   return (
     <>
-      <Card className="bg-card">
+      <Card>
         <CardHeader className="gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-1">
             <CardTitle>{title}</CardTitle>
@@ -330,7 +330,7 @@ export function SectionTable<Section extends BudgetSection>({
                   (payableColumn.key === "budget" || payableColumn.key === "estimate")
 
                 return (
-                  <Card key={row.id} className={isDone ? "bg-muted/30" : "bg-card"}>
+                  <Card key={row.id} className={isDone ? "bg-muted/30" : undefined}>
                     <CardContent className="space-y-4 p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 space-y-2">

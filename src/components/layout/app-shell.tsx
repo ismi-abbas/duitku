@@ -29,7 +29,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 lg:px-6">
           <div className="flex items-center gap-3">
             <Sheet>
@@ -40,9 +40,9 @@ export function AppShell() {
               </SheetTrigger>
               <SheetContent
                 side="left"
-                className="border-r border-border/60 bg-background p-0"
+                className="border-r bg-background p-0"
               >
-                <SheetHeader className="border-b border-border/60">
+                <SheetHeader className="border-b">
                   <SheetTitle>Budget routes</SheetTitle>
                 </SheetHeader>
                 <nav className="grid gap-1 p-4">

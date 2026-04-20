@@ -21,10 +21,10 @@ function CreditCardPage() {
         description="Use this page for planned card spending, then keep the live statement summary updated below so payment pressure stays visible."
       />
 
-      <Card className="border-0 ring-1 ring-foreground/10">
+      <Card>
         <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center border border-border/60 bg-muted/30">
+            <div className="flex size-10 items-center justify-center border bg-muted/30">
               <CreditCard className="size-4" />
             </div>
             <div>

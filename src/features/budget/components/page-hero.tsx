@@ -15,12 +15,12 @@ export function PageHero({ eyebrow, title, description }: PageHeroProps) {
   const { monthData, totals } = useBudgetStore()
 
   return (
-    <Card className="overflow-hidden border-0 bg-card ring-1 ring-foreground/10">
+    <Card className="overflow-hidden">
       <CardContent className="grid gap-6 p-6 lg:grid-cols-[1.2fr_0.8fr] lg:p-8">
         <div className="space-y-4">
           <Badge
             variant="secondary"
-            className="w-fit border border-border/70 bg-background/70"
+            className="w-fit border bg-background/70"
           >
             {eyebrow}
           </Badge>
@@ -41,10 +41,10 @@ export function PageHero({ eyebrow, title, description }: PageHeroProps) {
           </div>
         </div>
 
-        <div className="grid gap-4 self-start border border-border/60 bg-background/70 p-4 backdrop-blur-sm">
+        <div className="grid gap-4 self-start border bg-background/70 p-4 backdrop-blur-sm">
           <MonthPicker />
           <div className="grid gap-3 text-xs sm:grid-cols-3">
-            <div className="space-y-1 border border-border/60 bg-muted/50 p-3">
+            <div className="space-y-1 border bg-muted/50 p-3">
               <p className="tracking-[0.18em] text-muted-foreground uppercase">
                 Income
               </p>
@@ -52,7 +52,7 @@ export function PageHero({ eyebrow, title, description }: PageHeroProps) {
                 {currency.format(totals.incomeTotal)}
               </p>
             </div>
-            <div className="space-y-1 border border-border/60 bg-muted/50 p-3">
+            <div className="space-y-1 border bg-muted/50 p-3">
               <p className="tracking-[0.18em] text-muted-foreground uppercase">
                 Outstanding
               </p>
@@ -60,7 +60,7 @@ export function PageHero({ eyebrow, title, description }: PageHeroProps) {
                 {currency.format(totals.currentOutstandingBalance)}
               </p>
             </div>
-            <div className="space-y-1 border border-border/60 bg-muted/50 p-3">
+            <div className="space-y-1 border bg-muted/50 p-3">
               <p className="tracking-[0.18em] text-muted-foreground uppercase">
                 Daily expense
               </p>

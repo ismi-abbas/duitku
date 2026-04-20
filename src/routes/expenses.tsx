@@ -20,10 +20,10 @@ function ExpensesPage() {
         description="This screen focuses on recurring obligations and actual spending so you can search categories quickly and clear items as they are paid."
       />
 
-      <Card className="border-0 ring-1 ring-foreground/10">
+      <Card>
         <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center border border-border/60 bg-muted/30">
+            <div className="flex size-10 items-center justify-center border bg-muted/30">
               <ReceiptText className="size-4" />
             </div>
             <div>

@@ -79,8 +79,8 @@ export function OverviewPanel() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <Card className="border-0 ring-1 ring-foreground/10">
-          <CardHeader className="border-b border-border/60">
+        <Card>
+          <CardHeader className="border-b">
             <CardTitle>Priority expenses</CardTitle>
             <CardDescription>
               What still needs attention in {selectedMonth}.
@@ -90,7 +90,7 @@ export function OverviewPanel() {
             {nextExpenses.map((expense) => (
               <div
                 key={expense.id}
-                className="flex items-center justify-between border border-border/60 bg-muted/20 p-3"
+                className="flex items-center justify-between border bg-muted/20 p-3"
               >
                 <div className="space-y-1">
                   <p className="font-medium">{expense.name}</p>
@@ -104,8 +104,8 @@ export function OverviewPanel() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 ring-1 ring-foreground/10">
-          <CardHeader className="border-b border-border/60">
+        <Card>
+          <CardHeader className="border-b">
             <CardTitle>Budget alerts</CardTitle>
             <CardDescription>
               Quick reads before you move into detail pages.
@@ -141,8 +141,8 @@ export function OverviewPanel() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <Card className="border-0 ring-1 ring-foreground/10">
-          <CardHeader className="border-b border-border/60">
+        <Card>
+          <CardHeader className="border-b">
             <CardTitle>Month comparison</CardTitle>
             <CardDescription>
               This month against the previous saved month.
@@ -152,7 +152,7 @@ export function OverviewPanel() {
             {comparisonMetrics.map((metric) => (
               <div
                 key={metric.label}
-                className="flex items-center justify-between border border-border/60 bg-muted/20 p-3"
+                className="flex items-center justify-between border bg-muted/20 p-3"
               >
                 <div>
                   <p className="font-medium">{metric.label}</p>
@@ -172,8 +172,8 @@ export function OverviewPanel() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 ring-1 ring-foreground/10">
-          <CardHeader className="border-b border-border/60">
+        <Card>
+          <CardHeader className="border-b">
             <CardTitle>Month notes and due dates</CardTitle>
             <CardDescription>
               Capture context for {selectedMonth} and keep the next deadlines visible.
@@ -198,7 +198,7 @@ export function OverviewPanel() {
                 dueSoon.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between border border-border/60 bg-muted/20 p-3"
+                    className="flex items-center justify-between border bg-muted/20 p-3"
                   >
                     <div>
                       <p className="font-medium">{item.name}</p>
@@ -210,7 +210,7 @@ export function OverviewPanel() {
                   </div>
                 ))
               ) : (
-                <div className="border border-dashed border-border/60 p-3 text-xs text-muted-foreground">
+                <div className="border border-dashed p-3 text-xs text-muted-foreground">
                   Add due dates to expenses, card items, installments, or savings goals to surface them here.
                 </div>
               )}
@@ -231,7 +231,7 @@ type SignalRowProps = {
 
 function SignalRow({ icon: Icon, label, value, tone }: SignalRowProps) {
   return (
-    <div className="flex items-center gap-3 border border-border/60 bg-muted/20 p-3">
+    <div className="flex items-center gap-3 border bg-muted/20 p-3">
       <div
         className={[
           "flex size-9 items-center justify-center border bg-background",
@@ -239,7 +239,7 @@ function SignalRow({ icon: Icon, label, value, tone }: SignalRowProps) {
             ? "border-destructive/40 text-destructive"
             : tone === "warning"
               ? "border-amber-500/40 text-amber-600"
-              : "border-border/60",
+              : "border",
         ].join(" ")}
       >
         <Icon className="size-4" />

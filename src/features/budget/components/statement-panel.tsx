@@ -16,8 +16,8 @@ export function StatementPanel() {
   const { statement } = monthData
 
   return (
-    <Card className="border-0 ring-1 ring-foreground/10">
-      <CardHeader className="gap-3 border-b border-border/60">
+    <Card>
+      <CardHeader className="gap-3 border-b">
         <div className="space-y-1">
           <CardTitle>Statement command center</CardTitle>
           <CardDescription>
