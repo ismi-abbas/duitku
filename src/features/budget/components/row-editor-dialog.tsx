@@ -58,7 +58,7 @@ export function RowEditorDialog<T extends Record<string, unknown>>({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90dvh] w-[calc(100vw-1.5rem)] overflow-y-auto border-0 bg-popover ring-1 ring-foreground/10 sm:max-w-lg">
+      <DialogContent className="max-h-[90dvh] w-[calc(100vw-1.5rem)] overflow-y-auto bg-popover sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

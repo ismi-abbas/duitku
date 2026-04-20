@@ -157,8 +157,8 @@ export function SectionTable<Section extends BudgetSection>({
 
   return (
     <>
-      <Card className="border-0 bg-card ring-1 ring-foreground/10">
-        <CardHeader className="gap-4 border-b border-border/60 sm:flex-row sm:items-end sm:justify-between">
+      <Card className="bg-card">
+        <CardHeader className="gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-1">
             <CardTitle>{title}</CardTitle>
             <CardDescription>{description}</CardDescription>
@@ -330,10 +330,7 @@ export function SectionTable<Section extends BudgetSection>({
                   (payableColumn.key === "budget" || payableColumn.key === "estimate")
 
                 return (
-                  <Card
-                    key={row.id}
-                    className={isDone ? "border-0 bg-muted/30 ring-1 ring-foreground/10" : "border-0 bg-card ring-1 ring-foreground/10"}
-                  >
+                  <Card key={row.id} className={isDone ? "bg-muted/30" : "bg-card"}>
                     <CardContent className="space-y-4 p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 space-y-2">
@@ -412,7 +409,7 @@ export function SectionTable<Section extends BudgetSection>({
                         {mobileColumns.map((column) => (
                           <div
                             key={String(column.key)}
-                            className="rounded-lg border border-border/60 bg-muted/20 p-3"
+                            className="rounded-lg bg-muted/20 p-3"
                           >
                             <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                               {column.label}
@@ -434,14 +431,14 @@ export function SectionTable<Section extends BudgetSection>({
                 )
               })
             ) : (
-              <Card className="border-0 bg-muted/30 ring-1 ring-foreground/10">
+              <Card className="bg-muted/30">
                 <CardContent className="p-4 text-sm text-muted-foreground">
                   No rows match your search.
                 </CardContent>
               </Card>
             )}
 
-            <Card className="border-0 bg-muted/20 ring-1 ring-foreground/10">
+            <Card className="bg-muted/20">
               <CardContent className="space-y-3 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-medium">Totals</p>
@@ -457,7 +454,7 @@ export function SectionTable<Section extends BudgetSection>({
                     .map((column) => (
                       <div
                         key={String(column.key)}
-                        className="rounded-lg border border-border/60 bg-background p-3"
+                        className="rounded-lg bg-background p-3"
                       >
                         <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                           {column.label}
