@@ -52,8 +52,10 @@ function IncomePage() {
         addLabel="Add income source"
         columns={[
           { key: "name", label: "Source" },
+          { key: "category", label: "Category" },
           { key: "amount", label: "Net", type: "currency", sum: true },
           { key: "gross", label: "Gross", type: "currency", sum: true },
+          { key: "tags", label: "Tags", type: "tags" },
         ]}
       />
     </div>

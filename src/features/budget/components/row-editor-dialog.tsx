@@ -12,7 +12,15 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import type { EditorField } from "@/features/budget/types"
+import { serializeFormValue } from "@/features/budget/lib/budget-utils"
 
 type RowEditorDialogProps<T extends Record<string, unknown>> = {
   open: boolean
@@ -78,17 +86,37 @@ export function RowEditorDialog<T extends Record<string, unknown>>({
                   </Button>
                 ) : null}
               </div>
-              <Input
-                id={field.key}
-                type={field.type || "text"}
-                value={String(form[field.key] ?? "")}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    [field.key]: event.target.value,
-                  }))
-                }
-              />
+              {field.type === "boolean" ? (
+                <Select
+                  value={serializeFormValue(form[field.key] ?? false)}
+                  onValueChange={(value) =>
+                    setForm((current) => ({
+                      ...current,
+                      [field.key]: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">Yes</SelectItem>
+                    <SelectItem value="false">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id={field.key}
+                  type={field.type === "date" ? "date" : field.type || "text"}
+                  value={serializeFormValue(form[field.key])}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      [field.key]: event.target.value,
+                    }))
+                  }
+                />
+              )}
             </div>
           ))}
         </div>

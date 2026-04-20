@@ -6,6 +6,7 @@ import { incomeRoute } from "@/routes/income"
 import { indexRoute } from "@/routes/index"
 import { installmentsRoute } from "@/routes/installments"
 import { rootRoute } from "@/routes/root"
+import { savingsRoute } from "@/routes/savings"
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -13,6 +14,7 @@ const routeTree = rootRoute.addChildren([
   expensesRoute,
   creditCardRoute,
   installmentsRoute,
+  savingsRoute,
 ])
 
 export const router = createRouter({

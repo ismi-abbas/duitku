@@ -1,9 +1,11 @@
 import type {
+  BudgetAlert,
   BudgetData,
   BudgetMonth,
   BudgetRowMap,
   BudgetSection,
   BudgetTotals,
+  ComparisonMetric,
 } from "@/features/budget/types"
 import { createEmptyBudgetMonth } from "@/features/budget/constants"
 
@@ -38,6 +40,13 @@ export function currentMonthKey() {
   return `${year}-${month}`
 }
 
+export function previousMonthKey(monthKey: string) {
+  const [year, month] = monthKey.split("-").map(Number)
+  const date = new Date(year, (month || 1) - 2, 1)
+
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
+}
+
 export function getDaysInMonth(monthKey: string) {
   const [year, month] = monthKey.split("-").map(Number)
 
@@ -45,7 +54,57 @@ export function getDaysInMonth(monthKey: string) {
 }
 
 export function createEditableMonth(month?: BudgetMonth): BudgetMonth {
-  return month ?? createEmptyBudgetMonth()
+  const emptyMonth = createEmptyBudgetMonth()
+
+  if (!month) {
+    return emptyMonth
+  }
+
+  return {
+    ...emptyMonth,
+    ...month,
+    income: (month.income ?? []).map((row) => ({
+      ...row,
+      category: row.category ?? "",
+      tags: row.tags ?? [],
+      recurring: row.recurring ?? false,
+    })),
+    expenses: (month.expenses ?? []).map((row) => ({
+      ...row,
+      category: row.category ?? "",
+      tags: row.tags ?? [],
+      dueDate: row.dueDate ?? "",
+      recurring: row.recurring ?? false,
+    })),
+    creditCard: (month.creditCard ?? []).map((row) => ({
+      ...row,
+      category: row.category ?? "",
+      tags: row.tags ?? [],
+      dueDate: row.dueDate ?? "",
+      recurring: row.recurring ?? false,
+    })),
+    installments: (month.installments ?? []).map((row) => ({
+      ...row,
+      category: row.category ?? "",
+      tags: row.tags ?? [],
+      dueDate: row.dueDate ?? "",
+      recurring: row.recurring ?? false,
+    })),
+    savingsGoals: (month.savingsGoals ?? []).map((row) => ({
+      ...row,
+      target: row.target ?? 0,
+      saved: row.saved ?? 0,
+      dueDate: row.dueDate ?? "",
+      category: row.category ?? "",
+      tags: row.tags ?? [],
+      recurring: row.recurring ?? false,
+      done: row.done ?? false,
+    })),
+    statement: {
+      ...emptyMonth.statement,
+      ...month.statement,
+    },
+  }
 }
 
 export function ensureMonth(data: BudgetData, monthKey: string) {
@@ -99,6 +158,14 @@ export function computeTotals(month: BudgetMonth, monthKey: string): BudgetTotal
     (sum, row) => sum + toNumber(row.amount),
     0
   )
+  const savingsTarget = month.savingsGoals.reduce(
+    (sum, row) => sum + toNumber(row.target),
+    0
+  )
+  const savingsSaved = month.savingsGoals.reduce(
+    (sum, row) => sum + toNumber(row.saved),
+    0
+  )
   const expenseLeftToPay = month.expenses.reduce(
     (sum, row) => sum + (row.done ? 0 : toNumber(row.budget)),
     0
@@ -110,6 +177,18 @@ export function computeTotals(month: BudgetMonth, monthKey: string): BudgetTotal
   const installmentLeftToPay = month.installments.reduce(
     (sum, row) => sum + (row.done ? 0 : toNumber(row.amount)),
     0
+  )
+  const savingsLeftToFund = month.savingsGoals.reduce((sum, row) => {
+    if (row.done) {
+      return sum
+    }
+
+    return sum + Math.max(0, toNumber(row.target) - toNumber(row.saved))
+  }, 0)
+  const plannedStatementPayment = toNumber(month.statement.totalPayment)
+  const currentOutstandingBalance = Math.max(
+    0,
+    toNumber(month.statement.outstandingBalance) - creditCleared
   )
 
   return {
@@ -128,10 +207,16 @@ export function computeTotals(month: BudgetMonth, monthKey: string): BudgetTotal
     remainingBudget: incomeTotal - expenseBudget,
     actualBalance: incomeTotal - expenseActual,
     creditCleared,
-    currentOutstandingBalance: Math.max(
-      0,
-      toNumber(month.statement.outstandingBalance) - creditCleared
-    ),
+    currentOutstandingBalance,
+    statementProgress:
+      currentOutstandingBalance > 0
+        ? Math.min(1, plannedStatementPayment / currentOutstandingBalance)
+        : 1,
+    savingsTarget,
+    savingsSaved,
+    savingsLeftToFund,
+    committedTotal:
+      expenseBudget + creditBudget + installmentTotal + plannedStatementPayment,
   }
 }
 
@@ -148,9 +233,113 @@ export function normalizeFormValues<T extends Record<string, unknown>>(
   return Object.fromEntries(
     Object.entries(form).map(([key, value]) => [
       key,
-      typeof value === "string" && /^-?\d+(\.\d+)?$/.test(value)
-        ? Number(value)
-        : value,
+      key === "tags" && typeof value === "string"
+        ? value
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
+        : typeof value === "string" && (value === "true" || value === "false")
+          ? value === "true"
+          : typeof value === "string" && /^-?\d+(\.\d+)?$/.test(value)
+            ? Number(value)
+            : value,
     ])
   ) as T
+}
+
+export function serializeFormValue(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.join(", ")
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "true" : "false"
+  }
+
+  return String(value ?? "")
+}
+
+export function createBudgetAlerts(month: BudgetMonth, totals: BudgetTotals): BudgetAlert[] {
+  const alerts: BudgetAlert[] = []
+
+  if (totals.actualBalance < 0) {
+    alerts.push({
+      id: "actual-balance",
+      severity: "danger",
+      title: "Actual spending is ahead of income",
+      detail: `You are over by ${currency.format(Math.abs(totals.actualBalance))}.`,
+    })
+  }
+
+  if (totals.remainingBudget < 0) {
+    alerts.push({
+      id: "planned-balance",
+      severity: "danger",
+      title: "Planned commitments exceed income",
+      detail: `The month is short by ${currency.format(Math.abs(totals.remainingBudget))}.`,
+    })
+  }
+
+  if (toNumber(month.statement.totalPayment) < toNumber(month.statement.minimumPayment)) {
+    alerts.push({
+      id: "minimum-payment",
+      severity: "warning",
+      title: "Statement payment is below the minimum",
+      detail: "Increase the planned card payment to avoid falling behind.",
+    })
+  }
+
+  if (totals.totalLeftToPay > Math.max(0, totals.incomeTotal - totals.expenseActual)) {
+    alerts.push({
+      id: "left-to-pay",
+      severity: "warning",
+      title: "Open obligations are higher than the current cash buffer",
+      detail: `There is still ${currency.format(totals.totalLeftToPay)} left to clear.`,
+    })
+  }
+
+  const overdueCount = [
+    ...month.expenses,
+    ...month.creditCard,
+    ...month.installments,
+    ...month.savingsGoals,
+  ].filter((row) => row.dueDate && !row.done && row.dueDate < new Date().toISOString().slice(0, 10)).length
+
+  if (overdueCount > 0) {
+    alerts.push({
+      id: "overdue-items",
+      severity: "warning",
+      title: `${overdueCount} item${overdueCount === 1 ? " is" : "s are"} overdue`,
+      detail: "Review due dates and close anything that should already be paid or funded.",
+    })
+  }
+
+  return alerts
+}
+
+export function buildComparisonMetrics(
+  current: BudgetTotals,
+  previous?: BudgetTotals
+): ComparisonMetric[] {
+  const baseline = previous ?? computeTotals(createEmptyBudgetMonth(), currentMonthKey())
+
+  return [
+    createComparisonMetric("Income", current.incomeTotal, baseline.incomeTotal),
+    createComparisonMetric("Expenses", current.expenseActual, baseline.expenseActual),
+    createComparisonMetric("Card spend", current.creditActual, baseline.creditActual),
+    createComparisonMetric("Runway", current.actualBalance, baseline.actualBalance),
+  ]
+}
+
+function createComparisonMetric(
+  label: string,
+  current: number,
+  previous: number
+): ComparisonMetric {
+  return {
+    label,
+    current,
+    previous,
+    delta: current - previous,
+  }
 }

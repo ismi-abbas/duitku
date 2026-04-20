@@ -33,9 +33,11 @@ export function PageHero({ eyebrow, title, description }: PageHeroProps) {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-            <span>{monthData.notes}</span>
+            <span>{monthData.notes || "Add notes, due dates, and savings goals for the month."}</span>
             <Separator orientation="vertical" className="hidden h-4 sm:block" />
             <span>Actual balance {currency.format(totals.actualBalance)}</span>
+            <Separator orientation="vertical" className="hidden h-4 sm:block" />
+            <span>Saved {currency.format(totals.savingsSaved)}</span>
           </div>
         </div>
 

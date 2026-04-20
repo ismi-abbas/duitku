@@ -3,12 +3,32 @@ export type BudgetSection =
   | "expenses"
   | "creditCard"
   | "installments"
+  | "savingsGoals"
+
+export type RecurrenceRule = "none" | "monthly"
+
+export type BudgetAlert = {
+  id: string
+  severity: "warning" | "danger"
+  title: string
+  detail: string
+}
+
+export type ComparisonMetric = {
+  label: string
+  current: number
+  previous: number
+  delta: number
+}
 
 export type IncomeRow = {
   id: string
   name: string
   amount: number
   gross: number
+  category: string
+  tags: string[]
+  recurring: boolean
 }
 
 export type ExpenseRow = {
@@ -17,6 +37,10 @@ export type ExpenseRow = {
   budget: number
   actual: number
   done: boolean
+  category: string
+  tags: string[]
+  dueDate: string
+  recurring: boolean
 }
 
 export type CreditCardRow = {
@@ -25,6 +49,10 @@ export type CreditCardRow = {
   estimate: number
   actual: number
   done: boolean
+  category: string
+  tags: string[]
+  dueDate: string
+  recurring: boolean
 }
 
 export type InstallmentRow = {
@@ -32,12 +60,30 @@ export type InstallmentRow = {
   name: string
   amount: number
   done: boolean
+  category: string
+  tags: string[]
+  dueDate: string
+  recurring: boolean
+}
+
+export type SavingsGoalRow = {
+  id: string
+  name: string
+  target: number
+  saved: number
+  dueDate: string
+  category: string
+  tags: string[]
+  recurring: boolean
+  done: boolean
 }
 
 export type Statement = {
   outstandingBalance: number
   minimumPayment: number
   totalPayment: number
+  closingDate: string
+  paymentDueDate: string
 }
 
 export type BudgetMonth = {
@@ -45,6 +91,7 @@ export type BudgetMonth = {
   expenses: ExpenseRow[]
   creditCard: CreditCardRow[]
   installments: InstallmentRow[]
+  savingsGoals: SavingsGoalRow[]
   statement: Statement
   notes: string
 }
@@ -59,6 +106,7 @@ export type BudgetRowMap = {
   expenses: ExpenseRow
   creditCard: CreditCardRow
   installments: InstallmentRow
+  savingsGoals: SavingsGoalRow
 }
 
 export type BudgetTotals = {
@@ -78,10 +126,15 @@ export type BudgetTotals = {
   actualBalance: number
   creditCleared: number
   currentOutstandingBalance: number
+  statementProgress: number
+  savingsTarget: number
+  savingsSaved: number
+  savingsLeftToFund: number
+  committedTotal: number
 }
 
 export type EditorField = {
   key: string
   label: string
-  type?: "text" | "number"
+  type?: "text" | "number" | "date" | "boolean" | "tags"
 }

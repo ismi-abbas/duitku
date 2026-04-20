@@ -57,6 +57,8 @@ function CreditCardPage() {
         showDone
         columns={[
           { key: "name", label: "Item" },
+          { key: "category", label: "Category" },
+          { key: "dueDate", label: "Due", type: "date" },
           {
             key: "estimate",
             label: "Estimate",
@@ -65,6 +67,7 @@ function CreditCardPage() {
             payable: true,
           },
           { key: "actual", label: "Actual", type: "currency", sum: true },
+          { key: "tags", label: "Tags", type: "tags" },
         ]}
       />
 

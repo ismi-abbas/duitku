@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { Check, Copy, Pencil, Plus, Trash2 } from "lucide-react"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -33,7 +34,7 @@ import type { BudgetRowMap, BudgetSection } from "@/features/budget/types"
 type Column<Section extends BudgetSection> = {
   key: keyof BudgetRowMap[Section]
   label: string
-  type?: "currency" | "text"
+  type?: "currency" | "text" | "tags" | "date"
   sum?: boolean
   payable?: boolean
 }
@@ -75,7 +76,14 @@ export function SectionTable<Section extends BudgetSection>({
     }
 
     return rows.filter((row) =>
-      row.name.toLowerCase().includes(normalizedQuery)
+      [
+        row.name,
+        "category" in row ? String(row.category || "") : "",
+        "tags" in row && Array.isArray(row.tags) ? row.tags.join(" ") : "",
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(normalizedQuery)
     )
   }, [query, rows])
 
@@ -187,7 +195,19 @@ export function SectionTable<Section extends BudgetSection>({
                         >
                           {column.type === "currency"
                             ? currency.format(toNumber(row[column.key]))
-                            : String(row[column.key] || "-")}
+                            : column.type === "tags" && Array.isArray(row[column.key])
+                              ? (
+                                  <div className="flex flex-wrap gap-1">
+                                    {(row[column.key] as string[]).map((tag) => (
+                                      <Badge key={tag} variant="outline">
+                                        {tag}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )
+                              : column.type === "date"
+                                ? String(row[column.key] || "-")
+                             : String(row[column.key] || "-")}
                         </TableCell>
                       ))}
 
@@ -288,7 +308,15 @@ function createEmptyRow<Section extends BudgetSection>(
 ): BudgetRowMap[Section] {
   switch (section) {
     case "income":
-      return { id: "", name: "", amount: 0, gross: 0 } as BudgetRowMap[Section]
+      return {
+        id: "",
+        name: "",
+        amount: 0,
+        gross: 0,
+        category: "",
+        tags: [],
+        recurring: false,
+      } as unknown as BudgetRowMap[Section]
     case "expenses":
       return {
         id: "",
@@ -296,7 +324,11 @@ function createEmptyRow<Section extends BudgetSection>(
         budget: 0,
         actual: 0,
         done: false,
-      } as BudgetRowMap[Section]
+        category: "",
+        tags: [],
+        dueDate: "",
+        recurring: false,
+      } as unknown as BudgetRowMap[Section]
     case "creditCard":
       return {
         id: "",
@@ -304,13 +336,33 @@ function createEmptyRow<Section extends BudgetSection>(
         estimate: 0,
         actual: 0,
         done: false,
-      } as BudgetRowMap[Section]
+        category: "",
+        tags: [],
+        dueDate: "",
+        recurring: false,
+      } as unknown as BudgetRowMap[Section]
     case "installments":
       return {
         id: "",
         name: "",
         amount: 0,
         done: false,
-      } as BudgetRowMap[Section]
+        category: "",
+        tags: [],
+        dueDate: "",
+        recurring: false,
+      } as unknown as BudgetRowMap[Section]
+    case "savingsGoals":
+      return {
+        id: "",
+        name: "",
+        target: 0,
+        saved: 0,
+        dueDate: "",
+        category: "",
+        tags: [],
+        recurring: false,
+        done: false,
+      } as unknown as BudgetRowMap[Section]
   }
 }

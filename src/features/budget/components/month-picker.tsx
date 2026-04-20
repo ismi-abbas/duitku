@@ -10,6 +10,7 @@ import { useBudgetStore } from "@/features/budget/hooks/use-budget-store"
 
 export function MonthPicker() {
   const {
+    carryForwardMonth,
     isPopulatingMonth,
     monthData,
     selectedMonth,
@@ -23,13 +24,16 @@ export function MonthPicker() {
     monthData.expenses.length > 0 ||
     monthData.creditCard.length > 0 ||
     monthData.installments.length > 0 ||
+    monthData.savingsGoals.length > 0 ||
     monthData.notes.length > 0 ||
     monthData.statement.outstandingBalance > 0 ||
     monthData.statement.minimumPayment > 0 ||
-    monthData.statement.totalPayment > 0
+    monthData.statement.totalPayment > 0 ||
+    monthData.statement.closingDate.length > 0 ||
+    monthData.statement.paymentDueDate.length > 0
 
   return (
-    <div className="grid gap-3 sm:grid-cols-[0.9fr_1fr_auto] sm:items-center">
+    <div className="grid gap-3 sm:grid-cols-[0.9fr_1fr_auto_auto] sm:items-center">
       <Select
         value={selectedYear}
         onValueChange={(year) =>
@@ -72,6 +76,9 @@ export function MonthPicker() {
         onClick={() => void populateDefaultMonth(selectedMonth)}
       >
         {isPopulatingMonth ? "Populating..." : "Populate default"}
+      </Button>
+      <Button variant="outline" onClick={() => carryForwardMonth(selectedMonth)}>
+        Carry forward
       </Button>
     </div>
   )

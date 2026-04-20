@@ -58,6 +58,8 @@ function InstallmentsPage() {
         showDone
         columns={[
           { key: "name", label: "Item" },
+          { key: "category", label: "Category" },
+          { key: "dueDate", label: "Due", type: "date" },
           {
             key: "amount",
             label: "Amount",
@@ -65,6 +67,7 @@ function InstallmentsPage() {
             sum: true,
             payable: true,
           },
+          { key: "tags", label: "Tags", type: "tags" },
         ]}
       />
     </div>

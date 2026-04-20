@@ -3,18 +3,20 @@ import type { PropsWithChildren } from "react"
 
 import {
   createDefaultBudgetData,
-  createEmptyBudgetMonth,
 } from "@/features/budget/constants"
 import { useBudgetSync } from "@/features/budget/hooks/use-budget-sync"
 import {
   createEditableMonth,
   computeTotals,
   currentMonthKey,
+  ensureMonth,
   makeId,
+  previousMonthKey,
   toNumber,
 } from "@/features/budget/lib/budget-utils"
 import type {
   BudgetData,
+  BudgetMonth,
   BudgetRowMap,
   BudgetSection,
   Statement,
@@ -25,13 +27,16 @@ type BudgetContextValue = {
   monthKeys: string[]
   selectedMonth: string
   monthData: BudgetData["months"][string]
+  previousMonthData: BudgetMonth | null
   totals: ReturnType<typeof computeTotals>
+  previousTotals: ReturnType<typeof computeTotals> | null
   isSyncHydrated: boolean
   isPopulatingMonth: boolean
   isResettingData: boolean
   setSelectedMonth: (monthKey: string) => void
   populateDefaultMonth: (monthKey: string) => Promise<void>
   resetBudgetData: () => Promise<void>
+  carryForwardMonth: (monthKey: string) => void
   upsertRow: <Section extends BudgetSection>(
     section: Section,
     payload: BudgetRowMap[Section]
@@ -45,6 +50,7 @@ type BudgetContextValue = {
     id: string
   ) => void
   setStatement: (key: keyof Statement, value: number | string) => void
+  setMonthNotes: (value: string) => void
 }
 
 const BudgetContext = createContext<BudgetContextValue | null>(null)
@@ -60,10 +66,20 @@ export function BudgetProvider({ children }: PropsWithChildren) {
     [data.months]
   )
   const selectedMonth = data.selectedMonth || monthKeys[0] || currentMonthKey()
-  const monthData = data.months[selectedMonth] ?? createEmptyBudgetMonth()
+  const monthData = createEditableMonth(data.months[selectedMonth])
+  const previousMonthData = data.months[previousMonthKey(selectedMonth)]
+    ? createEditableMonth(data.months[previousMonthKey(selectedMonth)])
+    : null
   const totals = useMemo(
     () => computeTotals(monthData, selectedMonth),
     [monthData, selectedMonth]
+  )
+  const previousTotals = useMemo(
+    () =>
+      previousMonthData
+        ? computeTotals(previousMonthData, previousMonthKey(selectedMonth))
+        : null,
+    [previousMonthData, selectedMonth]
   )
 
   const value = useMemo<BudgetContextValue>(
@@ -72,25 +88,90 @@ export function BudgetProvider({ children }: PropsWithChildren) {
       monthKeys,
       selectedMonth,
       monthData,
+      previousMonthData,
       totals,
+      previousTotals,
       isSyncHydrated: isHydrated,
       isPopulatingMonth,
       isResettingData: isResetting,
       setSelectedMonth: (monthKey) => {
-        setData((prev) => ({
-          ...prev,
-          selectedMonth: monthKey,
-        }))
+        setData((prev) => {
+          const nextData = ensureMonth(prev, monthKey)
+
+          return {
+            ...nextData,
+            selectedMonth: monthKey,
+          }
+        })
       },
       populateDefaultMonth,
       resetBudgetData,
+      carryForwardMonth: (monthKey) => {
+        setData((prev) => {
+          const sourceMonth = prev.months[previousMonthKey(monthKey)]
+          const nextData = ensureMonth(prev, monthKey)
+
+          if (!sourceMonth) {
+            return {
+              ...nextData,
+              selectedMonth: monthKey,
+            }
+          }
+
+          const targetMonth = createEditableMonth(nextData.months[monthKey])
+
+          return {
+            ...nextData,
+            selectedMonth: monthKey,
+            months: {
+              ...nextData.months,
+              [monthKey]: {
+                ...targetMonth,
+                income: mergeRows(targetMonth.income, sourceMonth.income, (row) => row.recurring),
+                expenses: mergeRows(
+                  targetMonth.expenses,
+                  sourceMonth.expenses,
+                  (row) => row.recurring || !row.done,
+                  (row) => ({ ...row, actual: 0, done: false })
+                ),
+                creditCard: mergeRows(
+                  targetMonth.creditCard,
+                  sourceMonth.creditCard,
+                  (row) => row.recurring || !row.done,
+                  (row) => ({ ...row, actual: 0, done: false })
+                ),
+                installments: mergeRows(
+                  targetMonth.installments,
+                  sourceMonth.installments,
+                  (row) => row.recurring || !row.done,
+                  (row) => ({ ...row, done: false })
+                ),
+                savingsGoals: mergeRows(
+                  targetMonth.savingsGoals,
+                  sourceMonth.savingsGoals,
+                  (row) => row.recurring || !row.done,
+                  (row) => ({ ...row, done: false })
+                ),
+                statement: {
+                  ...targetMonth.statement,
+                  closingDate:
+                    targetMonth.statement.closingDate || sourceMonth.statement.closingDate,
+                  paymentDueDate:
+                    targetMonth.statement.paymentDueDate || sourceMonth.statement.paymentDueDate,
+                },
+              },
+            },
+          }
+        })
+      },
       upsertRow: (section, payload) => {
         setData((prev) => {
           const row = {
             ...payload,
             id: payload.id || makeId(),
           }
-          const currentMonth = createEditableMonth(prev.months[selectedMonth])
+          const nextData = ensureMonth(prev, selectedMonth)
+          const currentMonth = createEditableMonth(nextData.months[selectedMonth])
 
           const currentRows = currentMonth[section]
           const exists = currentRows.some((item) => item.id === row.id)
@@ -99,9 +180,9 @@ export function BudgetProvider({ children }: PropsWithChildren) {
             : [...currentRows, row]
 
           return {
-            ...prev,
+            ...nextData,
             months: {
-              ...prev.months,
+              ...nextData.months,
               [selectedMonth]: {
                 ...currentMonth,
                 [section]: nextRows,
@@ -112,12 +193,13 @@ export function BudgetProvider({ children }: PropsWithChildren) {
       },
       toggleDone: (section, id) => {
         setData((prev) => {
-          const currentMonth = createEditableMonth(prev.months[selectedMonth])
+          const nextData = ensureMonth(prev, selectedMonth)
+          const currentMonth = createEditableMonth(nextData.months[selectedMonth])
 
           return {
-            ...prev,
+            ...nextData,
             months: {
-              ...prev.months,
+              ...nextData.months,
               [selectedMonth]: {
                 ...currentMonth,
                 [section]: currentMonth[section].map((item) =>
@@ -130,12 +212,13 @@ export function BudgetProvider({ children }: PropsWithChildren) {
       },
       deleteRow: (section, id) => {
         setData((prev) => {
-          const currentMonth = createEditableMonth(prev.months[selectedMonth])
+          const nextData = ensureMonth(prev, selectedMonth)
+          const currentMonth = createEditableMonth(nextData.months[selectedMonth])
 
           return {
-            ...prev,
+            ...nextData,
             months: {
-              ...prev.months,
+              ...nextData.months,
               [selectedMonth]: {
                 ...currentMonth,
                 [section]: currentMonth[section].filter((item) => item.id !== id),
@@ -146,18 +229,36 @@ export function BudgetProvider({ children }: PropsWithChildren) {
       },
       setStatement: (key, value) => {
         setData((prev) => {
-          const currentMonth = createEditableMonth(prev.months[selectedMonth])
+          const nextData = ensureMonth(prev, selectedMonth)
+          const currentMonth = createEditableMonth(nextData.months[selectedMonth])
 
           return {
-            ...prev,
+            ...nextData,
             months: {
-              ...prev.months,
+              ...nextData.months,
               [selectedMonth]: {
                 ...currentMonth,
                 statement: {
                   ...currentMonth.statement,
                   [key]: toNumber(value),
                 },
+              },
+            },
+          }
+        })
+      },
+      setMonthNotes: (value) => {
+        setData((prev) => {
+          const nextData = ensureMonth(prev, selectedMonth)
+          const currentMonth = createEditableMonth(nextData.months[selectedMonth])
+
+          return {
+            ...nextData,
+            months: {
+              ...nextData.months,
+              [selectedMonth]: {
+                ...currentMonth,
+                notes: value,
               },
             },
           }
@@ -172,6 +273,8 @@ export function BudgetProvider({ children }: PropsWithChildren) {
       monthData,
       monthKeys,
       populateDefaultMonth,
+      previousMonthData,
+      previousTotals,
       resetBudgetData,
       selectedMonth,
       totals,
@@ -191,4 +294,22 @@ export function useBudgetStore() {
   }
 
   return context
+}
+
+function mergeRows<Row extends { id: string }>(
+  currentRows: Row[],
+  sourceRows: Row[],
+  shouldCopy: (row: Row) => boolean,
+  mapRow: (row: Row) => Row = (row) => ({
+    ...row,
+    id: makeId(),
+  })
+) {
+  const existingIds = new Set(currentRows.map((row) => row.id))
+  const copiedRows = sourceRows
+    .filter(shouldCopy)
+    .filter((row) => !existingIds.has(row.id))
+    .map(mapRow)
+
+  return [...currentRows, ...copiedRows]
 }

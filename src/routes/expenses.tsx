@@ -58,6 +58,8 @@ function ExpensesPage() {
         showDone
         columns={[
           { key: "name", label: "Category" },
+          { key: "category", label: "Group" },
+          { key: "dueDate", label: "Due", type: "date" },
           {
             key: "budget",
             label: "Budget",
@@ -66,6 +68,7 @@ function ExpensesPage() {
             payable: true,
           },
           { key: "actual", label: "Actual", type: "currency", sum: true },
+          { key: "tags", label: "Tags", type: "tags" },
         ]}
       />
     </div>

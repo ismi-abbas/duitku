@@ -35,11 +35,14 @@ export function StatementPanel() {
             Planned {currency.format(statement.totalPayment)}
           </Badge>
           <Badge variant="secondary">
+            Progress {Math.round(totals.statementProgress * 100)}%
+          </Badge>
+          <Badge variant="secondary">
             Cleared from card items {currency.format(totals.creditCleared)}
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 p-4 md:grid-cols-3">
+      <CardContent className="grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-5">
         <div className="grid gap-2">
           <Label htmlFor="outstanding-balance">
             Starting statement balance
@@ -76,6 +79,24 @@ export function StatementPanel() {
             onChange={(event) =>
               setStatement("totalPayment", event.target.value)
             }
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="statement-closing-date">Statement close date</Label>
+          <Input
+            id="statement-closing-date"
+            type="date"
+            value={statement.closingDate}
+            onChange={(event) => setStatement("closingDate", event.target.value)}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="statement-payment-due-date">Payment due date</Label>
+          <Input
+            id="statement-payment-due-date"
+            type="date"
+            value={statement.paymentDueDate}
+            onChange={(event) => setStatement("paymentDueDate", event.target.value)}
           />
         </div>
       </CardContent>
