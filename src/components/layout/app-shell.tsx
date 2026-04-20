@@ -1,4 +1,4 @@
-import { Menu, Moon, Sun } from "lucide-react"
+import { Menu, Moon, RotateCcw, Sun } from "lucide-react"
 import { Link, Outlet, useRouterState } from "@tanstack/react-router"
 
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useTheme } from "@/components/theme-provider"
+import { useBudgetStore } from "@/features/budget/hooks/use-budget-store"
 
 const navigation = [
   { to: "/", label: "Overview" },
@@ -25,6 +26,19 @@ export function AppShell() {
     select: (state) => state.location.pathname,
   })
   const { theme, setTheme } = useTheme()
+  const { isResettingData, isSyncHydrated, resetBudgetData } = useBudgetStore()
+
+  const handleReset = async () => {
+    const shouldReset = window.confirm(
+      "Reset all budget data in Supabase back to the default starter dataset?"
+    )
+
+    if (!shouldReset) {
+      return
+    }
+
+    await resetBudgetData()
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -90,17 +104,28 @@ export function AppShell() {
             ))}
           </nav>
 
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            {theme === "dark" ? (
-              <Sun className="size-4" />
-            ) : (
-              <Moon className="size-4" />
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!isSyncHydrated || isResettingData}
+              onClick={() => void handleReset()}
+            >
+              <RotateCcw className="size-4" />
+              {isResettingData ? "Resetting..." : "Reset data"}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon-sm"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              {theme === "dark" ? (
+                <Sun className="size-4" />
+              ) : (
+                <Moon className="size-4" />
+              )}
+            </Button>
+          </div>
         </div>
       </header>
 

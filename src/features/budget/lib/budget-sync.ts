@@ -36,6 +36,26 @@ export async function saveBudgetSnapshot(data: BudgetData) {
   }
 }
 
+export async function resetBudgetSnapshot() {
+  if (!supabase) {
+    return createDefaultBudgetData()
+  }
+
+  const { error } = await supabase.rpc("reset_budget_data")
+
+  if (error) {
+    throw error
+  }
+
+  const nextData = await loadBudgetSnapshot()
+
+  if (!nextData) {
+    throw new Error("Supabase reset completed but no budget data was returned")
+  }
+
+  return nextData
+}
+
 export function createFallbackBudgetData() {
   return createDefaultBudgetData()
 }

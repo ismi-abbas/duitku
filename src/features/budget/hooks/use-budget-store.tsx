@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { createContext, useContext, useMemo, useState } from "react"
 import type { PropsWithChildren } from "react"
 
 import { createDefaultBudgetData } from "@/features/budget/constants"
@@ -8,7 +8,6 @@ import {
   currentMonthKey,
   ensureMonth,
   makeId,
-  STORAGE_KEY,
   toNumber,
 } from "@/features/budget/lib/budget-utils"
 import type {
@@ -24,7 +23,10 @@ type BudgetContextValue = {
   selectedMonth: string
   monthData: BudgetData["months"][string]
   totals: ReturnType<typeof computeTotals>
+  isSyncHydrated: boolean
+  isResettingData: boolean
   setSelectedMonth: (monthKey: string) => void
+  resetBudgetData: () => Promise<void>
   upsertRow: <Section extends BudgetSection>(
     section: Section,
     payload: BudgetRowMap[Section]
@@ -42,29 +44,13 @@ type BudgetContextValue = {
 
 const BudgetContext = createContext<BudgetContextValue | null>(null)
 
-function readInitialData() {
-  const fallback = createDefaultBudgetData()
-  const saved = localStorage.getItem(STORAGE_KEY)
-
-  if (!saved) {
-    return fallback
-  }
-
-  try {
-    return JSON.parse(saved) as BudgetData
-  } catch {
-    return fallback
-  }
-}
-
 export function BudgetProvider({ children }: PropsWithChildren) {
-  const [data, setData] = useState<BudgetData>(readInitialData)
+  const [data, setData] = useState<BudgetData>(createDefaultBudgetData)
 
-  useBudgetSync(data, setData)
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-  }, [data])
+  const { isHydrated, isResetting, resetBudgetData } = useBudgetSync(
+    data,
+    setData
+  )
 
   const monthKeys = useMemo(
     () => Object.keys(data.months).sort(),
@@ -72,7 +58,10 @@ export function BudgetProvider({ children }: PropsWithChildren) {
   )
   const selectedMonth = data.selectedMonth || monthKeys[0] || currentMonthKey()
   const monthData = data.months[selectedMonth]
-  const totals = useMemo(() => computeTotals(monthData), [monthData])
+  const totals = useMemo(
+    () => computeTotals(monthData, selectedMonth),
+    [monthData, selectedMonth]
+  )
 
   const value = useMemo<BudgetContextValue>(
     () => ({
@@ -81,12 +70,15 @@ export function BudgetProvider({ children }: PropsWithChildren) {
       selectedMonth,
       monthData,
       totals,
+      isSyncHydrated: isHydrated,
+      isResettingData: isResetting,
       setSelectedMonth: (monthKey) => {
         setData((prev) => ({
           ...ensureMonth(prev, monthKey),
           selectedMonth: monthKey,
         }))
       },
+      resetBudgetData,
       upsertRow: (section, payload) => {
         setData((prev) => {
           const row = {
@@ -156,7 +148,16 @@ export function BudgetProvider({ children }: PropsWithChildren) {
         }))
       },
     }),
-    [data, monthData, monthKeys, selectedMonth, totals]
+    [
+      data,
+      isHydrated,
+      isResetting,
+      monthData,
+      monthKeys,
+      resetBudgetData,
+      selectedMonth,
+      totals,
+    ]
   )
 
   return (

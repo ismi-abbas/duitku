@@ -24,6 +24,7 @@ If you use the dashboard SQL editor, run the SQL from:
 - `public.budget_installments`
 - RPC read function: `public.get_budget_data()`
 - RPC write function: `public.save_budget_data(jsonb)`
+- RPC reset function: `public.reset_budget_data()`
 
 ## Frontend env vars
 
@@ -31,8 +32,11 @@ Set these in `.env`:
 
 ```bash
 VITE_SUPABASE_URL=...
+VITE_SUPABASE_PUBLISHABLE_KEY=...
 VITE_SUPABASE_ANON_KEY=...
 ```
+
+The frontend accepts either `VITE_SUPABASE_PUBLISHABLE_KEY` or `VITE_SUPABASE_ANON_KEY`.
 
 ## Important note
 

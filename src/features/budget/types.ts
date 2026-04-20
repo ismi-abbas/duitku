@@ -64,6 +64,7 @@ export type BudgetRowMap = {
 export type BudgetTotals = {
   incomeTotal: number
   incomeGross: number
+  dailyExpenseBudget: number
   expenseBudget: number
   expenseActual: number
   creditBudget: number

@@ -6,8 +6,6 @@ import type {
   BudgetTotals,
 } from "@/features/budget/types"
 
-export const STORAGE_KEY = "budget-webapp-v1"
-
 export const currency = new Intl.NumberFormat("ms-MY", {
   style: "currency",
   currency: "MYR",
@@ -37,6 +35,12 @@ export function currentMonthKey() {
   const year = now.getFullYear()
   const month = String(now.getMonth() + 1).padStart(2, "0")
   return `${year}-${month}`
+}
+
+export function getDaysInMonth(monthKey: string) {
+  const [year, month] = monthKey.split("-").map(Number)
+
+  return new Date(year, month || 1, 0).getDate()
 }
 
 export function cloneMonth(
@@ -84,7 +88,7 @@ export function ensureMonth(data: BudgetData, monthKey: string) {
   }
 }
 
-export function computeTotals(month: BudgetMonth): BudgetTotals {
+export function computeTotals(month: BudgetMonth, monthKey: string): BudgetTotals {
   const creditCleared = month.creditCard.reduce((sum, row) => {
     if (!row.done) {
       return sum
@@ -104,6 +108,7 @@ export function computeTotals(month: BudgetMonth): BudgetTotals {
     (sum, row) => sum + toNumber(row.budget),
     0
   )
+  const dailyExpenseBudget = expenseBudget / getDaysInMonth(monthKey)
   const expenseActual = month.expenses.reduce(
     (sum, row) => sum + toNumber(row.actual),
     0
@@ -136,6 +141,7 @@ export function computeTotals(month: BudgetMonth): BudgetTotals {
   return {
     incomeTotal,
     incomeGross,
+    dailyExpenseBudget,
     expenseBudget,
     expenseActual,
     creditBudget,

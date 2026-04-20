@@ -41,7 +41,7 @@ export function PageHero({ eyebrow, title, description }: PageHeroProps) {
 
         <div className="grid gap-4 self-start border border-border/60 bg-background/70 p-4 backdrop-blur-sm">
           <MonthPicker />
-          <div className="grid grid-cols-2 gap-3 text-xs">
+          <div className="grid gap-3 text-xs sm:grid-cols-3">
             <div className="space-y-1 border border-border/60 bg-muted/50 p-3">
               <p className="tracking-[0.18em] text-muted-foreground uppercase">
                 Income
@@ -56,6 +56,14 @@ export function PageHero({ eyebrow, title, description }: PageHeroProps) {
               </p>
               <p className="text-lg font-semibold">
                 {currency.format(totals.currentOutstandingBalance)}
+              </p>
+            </div>
+            <div className="space-y-1 border border-border/60 bg-muted/50 p-3">
+              <p className="tracking-[0.18em] text-muted-foreground uppercase">
+                Daily expense
+              </p>
+              <p className="text-lg font-semibold">
+                {currency.format(totals.dailyExpenseBudget)}
               </p>
             </div>
           </div>

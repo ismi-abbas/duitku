@@ -1,8 +1,10 @@
-import { useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { Dispatch, SetStateAction } from "react"
 
 import {
+  createFallbackBudgetData,
   loadBudgetSnapshot,
+  resetBudgetSnapshot,
   saveBudgetSnapshot,
 } from "@/features/budget/lib/budget-sync"
 import type { BudgetData } from "@/features/budget/types"
@@ -14,9 +16,12 @@ export function useBudgetSync(
 ) {
   const hydratedRef = useRef(false)
   const lastSyncedRef = useRef<string | null>(null)
+  const [isHydrated, setIsHydrated] = useState(!isSupabaseConfigured)
+  const [isResetting, setIsResetting] = useState(false)
 
   useEffect(() => {
     if (!isSupabaseConfigured || hydratedRef.current) {
+      setIsHydrated(true)
       return
     }
 
@@ -24,17 +29,30 @@ export function useBudgetSync(
 
     loadBudgetSnapshot()
       .then((remoteData) => {
-        if (!remoteData || cancelled) {
-          hydratedRef.current = true
+        if (cancelled) {
           return
         }
 
-        lastSyncedRef.current = JSON.stringify(remoteData)
-        setData(remoteData)
+        if (remoteData) {
+          lastSyncedRef.current = JSON.stringify(remoteData)
+          setData(remoteData)
+        } else {
+          const fallbackData = createFallbackBudgetData()
+
+          setData(fallbackData)
+          lastSyncedRef.current = null
+        }
+
+        if (cancelled) {
+          return
+        }
+
         hydratedRef.current = true
+        setIsHydrated(true)
       })
       .catch(() => {
         hydratedRef.current = true
+        setIsHydrated(true)
       })
 
     return () => {
@@ -57,4 +75,28 @@ export function useBudgetSync(
       lastSyncedRef.current = null
     })
   }, [data])
+
+  const resetBudgetData = useCallback(async () => {
+    const fallbackData = createFallbackBudgetData()
+
+    setIsResetting(true)
+
+    try {
+      if (isSupabaseConfigured) {
+        const remoteData = await resetBudgetSnapshot()
+        lastSyncedRef.current = JSON.stringify(remoteData)
+        setData(remoteData)
+      } else {
+        setData(fallbackData)
+      }
+    } finally {
+      setIsResetting(false)
+    }
+  }, [setData])
+
+  return {
+    isHydrated,
+    isResetting,
+    resetBudgetData,
+  }
 }
