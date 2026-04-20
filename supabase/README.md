@@ -25,6 +25,7 @@ If you use the dashboard SQL editor, run the SQL from:
 - RPC read function: `public.get_budget_data()`
 - RPC write function: `public.save_budget_data(jsonb)`
 - RPC reset function: `public.reset_budget_data()`
+- RPC populate-month function: `public.populate_budget_month(text)`
 
 ## Frontend env vars
 

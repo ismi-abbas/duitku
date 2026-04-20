@@ -4,6 +4,7 @@ import type { Dispatch, SetStateAction } from "react"
 import {
   createFallbackBudgetData,
   loadBudgetSnapshot,
+  populateBudgetMonth,
   resetBudgetSnapshot,
   saveBudgetSnapshot,
 } from "@/features/budget/lib/budget-sync"
@@ -18,6 +19,7 @@ export function useBudgetSync(
   const lastSyncedRef = useRef<string | null>(null)
   const [isHydrated, setIsHydrated] = useState(!isSupabaseConfigured)
   const [isResetting, setIsResetting] = useState(false)
+  const [isPopulatingMonth, setIsPopulatingMonth] = useState(false)
 
   useEffect(() => {
     if (!isSupabaseConfigured || hydratedRef.current) {
@@ -94,9 +96,34 @@ export function useBudgetSync(
     }
   }, [setData])
 
+  const populateDefaultMonth = useCallback(
+    async (monthKey: string) => {
+      setIsPopulatingMonth(true)
+
+      try {
+        if (isSupabaseConfigured) {
+          const remoteData = await populateBudgetMonth(monthKey)
+          lastSyncedRef.current = JSON.stringify(remoteData)
+          setData(remoteData)
+          return
+        }
+
+        setData((prev) => ({
+          ...prev,
+          selectedMonth: monthKey,
+        }))
+      } finally {
+        setIsPopulatingMonth(false)
+      }
+    },
+    [setData]
+  )
+
   return {
     isHydrated,
+    isPopulatingMonth,
     isResetting,
+    populateDefaultMonth,
     resetBudgetData,
   }
 }

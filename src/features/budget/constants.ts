@@ -1,9 +1,25 @@
 import { currentMonthKey } from "@/features/budget/lib/budget-utils"
 import type {
   BudgetData,
+  BudgetMonth,
   BudgetSection,
   EditorField,
 } from "@/features/budget/types"
+
+export function createEmptyBudgetMonth(): BudgetMonth {
+  return {
+    income: [],
+    expenses: [],
+    creditCard: [],
+    installments: [],
+    statement: {
+      outstandingBalance: 0,
+      minimumPayment: 0,
+      totalPayment: 0,
+    },
+    notes: "",
+  }
+}
 
 export function createDefaultBudgetData(): BudgetData {
   const monthKey = currentMonthKey()
@@ -11,18 +27,7 @@ export function createDefaultBudgetData(): BudgetData {
   return {
     selectedMonth: monthKey,
     months: {
-      [monthKey]: {
-        income: [],
-        expenses: [],
-        creditCard: [],
-        installments: [],
-        statement: {
-          outstandingBalance: 0,
-          minimumPayment: 0,
-          totalPayment: 0,
-        },
-        notes: "",
-      },
+      [monthKey]: createEmptyBudgetMonth(),
     },
   }
 }

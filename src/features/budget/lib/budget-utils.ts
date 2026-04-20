@@ -5,6 +5,7 @@ import type {
   BudgetSection,
   BudgetTotals,
 } from "@/features/budget/types"
+import { createEmptyBudgetMonth } from "@/features/budget/constants"
 
 export const currency = new Intl.NumberFormat("ms-MY", {
   style: "currency",
@@ -43,32 +44,8 @@ export function getDaysInMonth(monthKey: string) {
   return new Date(year, month || 1, 0).getDate()
 }
 
-export function cloneMonth(
-  source: BudgetMonth,
-  sourceMonth: string
-): BudgetMonth {
-  return {
-    income: source.income.map((row) => ({ ...row, id: makeId() })),
-    expenses: source.expenses.map((row) => ({
-      ...row,
-      id: makeId(),
-      actual: 0,
-      done: false,
-    })),
-    creditCard: source.creditCard.map((row) => ({
-      ...row,
-      id: makeId(),
-      actual: 0,
-      done: false,
-    })),
-    installments: source.installments.map((row) => ({
-      ...row,
-      id: makeId(),
-      done: false,
-    })),
-    statement: { ...source.statement },
-    notes: `Copied from ${sourceMonth}`,
-  }
+export function createEditableMonth(month?: BudgetMonth): BudgetMonth {
+  return month ?? createEmptyBudgetMonth()
 }
 
 export function ensureMonth(data: BudgetData, monthKey: string) {
@@ -76,14 +53,11 @@ export function ensureMonth(data: BudgetData, monthKey: string) {
     return data
   }
 
-  const sourceMonth = data.selectedMonth || Object.keys(data.months)[0]
-  const source = data.months[sourceMonth]
-
   return {
     ...data,
     months: {
       ...data.months,
-      [monthKey]: cloneMonth(source, sourceMonth),
+      [monthKey]: createEmptyBudgetMonth(),
     },
   }
 }

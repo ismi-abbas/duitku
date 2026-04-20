@@ -1,12 +1,15 @@
 import { createContext, useContext, useMemo, useState } from "react"
 import type { PropsWithChildren } from "react"
 
-import { createDefaultBudgetData } from "@/features/budget/constants"
+import {
+  createDefaultBudgetData,
+  createEmptyBudgetMonth,
+} from "@/features/budget/constants"
 import { useBudgetSync } from "@/features/budget/hooks/use-budget-sync"
 import {
+  createEditableMonth,
   computeTotals,
   currentMonthKey,
-  ensureMonth,
   makeId,
   toNumber,
 } from "@/features/budget/lib/budget-utils"
@@ -24,8 +27,10 @@ type BudgetContextValue = {
   monthData: BudgetData["months"][string]
   totals: ReturnType<typeof computeTotals>
   isSyncHydrated: boolean
+  isPopulatingMonth: boolean
   isResettingData: boolean
   setSelectedMonth: (monthKey: string) => void
+  populateDefaultMonth: (monthKey: string) => Promise<void>
   resetBudgetData: () => Promise<void>
   upsertRow: <Section extends BudgetSection>(
     section: Section,
@@ -47,17 +52,15 @@ const BudgetContext = createContext<BudgetContextValue | null>(null)
 export function BudgetProvider({ children }: PropsWithChildren) {
   const [data, setData] = useState<BudgetData>(createDefaultBudgetData)
 
-  const { isHydrated, isResetting, resetBudgetData } = useBudgetSync(
-    data,
-    setData
-  )
+  const { isHydrated, isPopulatingMonth, isResetting, populateDefaultMonth, resetBudgetData } =
+    useBudgetSync(data, setData)
 
   const monthKeys = useMemo(
     () => Object.keys(data.months).sort(),
     [data.months]
   )
   const selectedMonth = data.selectedMonth || monthKeys[0] || currentMonthKey()
-  const monthData = data.months[selectedMonth]
+  const monthData = data.months[selectedMonth] ?? createEmptyBudgetMonth()
   const totals = useMemo(
     () => computeTotals(monthData, selectedMonth),
     [monthData, selectedMonth]
@@ -71,13 +74,15 @@ export function BudgetProvider({ children }: PropsWithChildren) {
       monthData,
       totals,
       isSyncHydrated: isHydrated,
+      isPopulatingMonth,
       isResettingData: isResetting,
       setSelectedMonth: (monthKey) => {
         setData((prev) => ({
-          ...ensureMonth(prev, monthKey),
+          ...prev,
           selectedMonth: monthKey,
         }))
       },
+      populateDefaultMonth,
       resetBudgetData,
       upsertRow: (section, payload) => {
         setData((prev) => {
@@ -85,8 +90,9 @@ export function BudgetProvider({ children }: PropsWithChildren) {
             ...payload,
             id: payload.id || makeId(),
           }
+          const currentMonth = createEditableMonth(prev.months[selectedMonth])
 
-          const currentRows = prev.months[selectedMonth][section]
+          const currentRows = currentMonth[section]
           const exists = currentRows.some((item) => item.id === row.id)
           const nextRows = exists
             ? currentRows.map((item) => (item.id === row.id ? row : item))
@@ -97,7 +103,7 @@ export function BudgetProvider({ children }: PropsWithChildren) {
             months: {
               ...prev.months,
               [selectedMonth]: {
-                ...prev.months[selectedMonth],
+                ...currentMonth,
                 [section]: nextRows,
               },
             },
@@ -105,55 +111,67 @@ export function BudgetProvider({ children }: PropsWithChildren) {
         })
       },
       toggleDone: (section, id) => {
-        setData((prev) => ({
-          ...prev,
-          months: {
-            ...prev.months,
-            [selectedMonth]: {
-              ...prev.months[selectedMonth],
-              [section]: prev.months[selectedMonth][section].map((item) =>
-                item.id === id ? { ...item, done: !item.done } : item
-              ),
-            },
-          },
-        }))
-      },
-      deleteRow: (section, id) => {
-        setData((prev) => ({
-          ...prev,
-          months: {
-            ...prev.months,
-            [selectedMonth]: {
-              ...prev.months[selectedMonth],
-              [section]: prev.months[selectedMonth][section].filter(
-                (item) => item.id !== id
-              ),
-            },
-          },
-        }))
-      },
-      setStatement: (key, value) => {
-        setData((prev) => ({
-          ...prev,
-          months: {
-            ...prev.months,
-            [selectedMonth]: {
-              ...prev.months[selectedMonth],
-              statement: {
-                ...prev.months[selectedMonth].statement,
-                [key]: toNumber(value),
+        setData((prev) => {
+          const currentMonth = createEditableMonth(prev.months[selectedMonth])
+
+          return {
+            ...prev,
+            months: {
+              ...prev.months,
+              [selectedMonth]: {
+                ...currentMonth,
+                [section]: currentMonth[section].map((item) =>
+                  item.id === id ? { ...item, done: !item.done } : item
+                ),
               },
             },
-          },
-        }))
+          }
+        })
+      },
+      deleteRow: (section, id) => {
+        setData((prev) => {
+          const currentMonth = createEditableMonth(prev.months[selectedMonth])
+
+          return {
+            ...prev,
+            months: {
+              ...prev.months,
+              [selectedMonth]: {
+                ...currentMonth,
+                [section]: currentMonth[section].filter((item) => item.id !== id),
+              },
+            },
+          }
+        })
+      },
+      setStatement: (key, value) => {
+        setData((prev) => {
+          const currentMonth = createEditableMonth(prev.months[selectedMonth])
+
+          return {
+            ...prev,
+            months: {
+              ...prev.months,
+              [selectedMonth]: {
+                ...currentMonth,
+                statement: {
+                  ...currentMonth.statement,
+                  [key]: toNumber(value),
+                },
+              },
+            },
+          }
+        })
       },
     }),
     [
       data,
       isHydrated,
+      isPopulatingMonth,
       isResetting,
       monthData,
       monthKeys,
+      populateDefaultMonth,
       resetBudgetData,
       selectedMonth,
       totals,

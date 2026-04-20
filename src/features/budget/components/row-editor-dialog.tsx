@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { Copy } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -34,6 +35,15 @@ export function RowEditorDialog<T extends Record<string, unknown>>({
 }: RowEditorDialogProps<T>) {
   const [form, setForm] = useState(initialValues)
 
+  const actualSourceKey =
+    "actual" in form
+      ? "budget" in form
+        ? "budget"
+        : "estimate" in form
+          ? "estimate"
+          : null
+      : null
+
   useEffect(() => {
     setForm(initialValues)
   }, [initialValues])
@@ -49,7 +59,25 @@ export function RowEditorDialog<T extends Record<string, unknown>>({
         <div className="grid gap-4 py-2">
           {fields.map((field) => (
             <div key={field.key} className="grid gap-2">
-              <Label htmlFor={field.key}>{field.label}</Label>
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor={field.key}>{field.label}</Label>
+                {field.key === "actual" && actualSourceKey ? (
+                  <Button
+                    type="button"
+                    size="xs"
+                    variant="outline"
+                    onClick={() =>
+                      setForm((current) => ({
+                        ...current,
+                        actual: current[actualSourceKey],
+                      }))
+                    }
+                  >
+                    <Copy className="size-3" />
+                    Same as {actualSourceKey === "budget" ? "budget" : "estimate"}
+                  </Button>
+                ) : null}
+              </div>
               <Input
                 id={field.key}
                 type={field.type || "text"}

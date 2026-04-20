@@ -56,6 +56,28 @@ export async function resetBudgetSnapshot() {
   return nextData
 }
 
+export async function populateBudgetMonth(monthKey: string) {
+  if (!supabase) {
+    return createDefaultBudgetData()
+  }
+
+  const { error } = await supabase.rpc("populate_budget_month", {
+    input_month_key: monthKey,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  const nextData = await loadBudgetSnapshot()
+
+  if (!nextData) {
+    throw new Error("Supabase populate completed but no budget data was returned")
+  }
+
+  return nextData
+}
+
 export function createFallbackBudgetData() {
   return createDefaultBudgetData()
 }
@@ -76,7 +98,6 @@ function isValidBudgetData(value: unknown): value is BudgetData {
   return (
     typeof candidate.selectedMonth === "string" &&
     !!candidate.months &&
-    typeof candidate.months === "object" &&
-    Object.keys(candidate.months).length > 0
+    typeof candidate.months === "object"
   )
 }

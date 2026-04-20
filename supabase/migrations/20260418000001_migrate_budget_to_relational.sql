@@ -216,7 +216,8 @@ begin
   on conflict (singleton)
   do update set selected_month = excluded.selected_month;
 
-  delete from public.budget_months;
+  delete from public.budget_months
+  where month_key is not null;
 
   for month_record in
     select key as month_key, value as month_data

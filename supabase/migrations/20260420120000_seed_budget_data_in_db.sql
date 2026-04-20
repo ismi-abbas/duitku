@@ -3,8 +3,11 @@ returns void
 language plpgsql
 as $$
 begin
-  delete from public.budget_months;
-  delete from public.budget_settings;
+  delete from public.budget_months
+  where month_key is not null;
+
+  delete from public.budget_settings
+  where singleton = true;
 
   insert into public.budget_settings (singleton, selected_month)
   values (true, '2026-05');

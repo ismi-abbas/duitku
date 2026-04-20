@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { Check, Pencil, Plus, Trash2 } from "lucide-react"
+import { Check, Copy, Pencil, Plus, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -149,6 +149,10 @@ export function SectionTable<Section extends BudgetSection>({
               <TableBody>
                 {filteredRows.map((row) => {
                   const isDone = "done" in row && row.done
+                  const canCopyPayableToActual =
+                    payableColumn &&
+                    "actual" in row &&
+                    (payableColumn.key === "budget" || payableColumn.key === "estimate")
 
                   return (
                     <TableRow
@@ -189,6 +193,21 @@ export function SectionTable<Section extends BudgetSection>({
 
                       <TableCell>
                         <div className="flex justify-end gap-2">
+                          {canCopyPayableToActual ? (
+                            <Button
+                              size="icon-sm"
+                              variant="outline"
+                              onClick={() =>
+                                upsertRow(section, {
+                                  ...row,
+                                  actual: toNumber(row[payableColumn.key]),
+                                } as BudgetRowMap[Section])
+                              }
+                              title={`Use ${payableColumn.label.toLowerCase()} as actual`}
+                            >
+                              <Copy className="size-4" />
+                            </Button>
+                          ) : null}
                           <Button
                             size="icon-sm"
                             variant="outline"
