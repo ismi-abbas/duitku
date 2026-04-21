@@ -111,7 +111,10 @@ export function SectionTable<Section extends BudgetSection>({
 
   const mobileColumns = columns.filter((column) => column.key !== "name")
 
-  function renderColumnValue(row: BudgetRowMap[Section], column: Column<Section>) {
+  function renderColumnValue(
+    row: BudgetRowMap[Section],
+    column: Column<Section>
+  ) {
     const value = row[column.key]
 
     if (column.type === "currency") {
@@ -145,7 +148,10 @@ export function SectionTable<Section extends BudgetSection>({
     return String(value || "-")
   }
 
-  function renderTableCell(row: BudgetRowMap[Section], column: Column<Section>) {
+  function renderTableCell(
+    row: BudgetRowMap[Section],
+    column: Column<Section>
+  ) {
     const content = renderColumnValue(row, column)
 
     if (typeof content === "string") {
@@ -207,7 +213,8 @@ export function SectionTable<Section extends BudgetSection>({
                     const canCopyPayableToActual =
                       payableColumn &&
                       "actual" in row &&
-                      (payableColumn.key === "budget" || payableColumn.key === "estimate")
+                      (payableColumn.key === "budget" ||
+                        payableColumn.key === "estimate")
 
                     return (
                       <TableRow
@@ -327,10 +334,14 @@ export function SectionTable<Section extends BudgetSection>({
                 const canCopyPayableToActual =
                   payableColumn &&
                   "actual" in row &&
-                  (payableColumn.key === "budget" || payableColumn.key === "estimate")
+                  (payableColumn.key === "budget" ||
+                    payableColumn.key === "estimate")
 
                 return (
-                  <Card key={row.id} className={isDone ? "bg-muted/30" : undefined}>
+                  <Card
+                    key={row.id}
+                    className={isDone ? "bg-muted/30" : undefined}
+                  >
                     <CardContent className="space-y-4 p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 space-y-2">
@@ -360,11 +371,25 @@ export function SectionTable<Section extends BudgetSection>({
                             </p>
                           </div>
                           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                            {columns.find((column) => column.key === "category") ? (
-                              <span>{String((row as { category?: string }).category || "No category")}</span>
+                            {columns.find(
+                              (column) => column.key === "category"
+                            ) ? (
+                              <span>
+                                {String(
+                                  (row as { category?: string }).category ||
+                                    "No category"
+                                )}
+                              </span>
                             ) : null}
-                            {columns.find((column) => column.key === "dueDate") ? (
-                              <span>{String((row as { dueDate?: string }).dueDate || "No due date")}</span>
+                            {columns.find(
+                              (column) => column.key === "dueDate"
+                            ) ? (
+                              <span>
+                                {String(
+                                  (row as { dueDate?: string }).dueDate ||
+                                    "No due date"
+                                )}
+                              </span>
                             ) : null}
                           </div>
                         </div>
@@ -411,7 +436,7 @@ export function SectionTable<Section extends BudgetSection>({
                             key={String(column.key)}
                             className="rounded-lg bg-muted/20 p-3"
                           >
-                            <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                            <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                               {column.label}
                             </p>
                             <div
@@ -456,7 +481,7 @@ export function SectionTable<Section extends BudgetSection>({
                         key={String(column.key)}
                         className="rounded-lg bg-background p-3"
                       >
-                        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
                           {column.label}
                         </p>
                         <p className="mt-1 text-sm font-medium">

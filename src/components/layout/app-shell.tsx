@@ -66,10 +66,10 @@ export function AppShell() {
 
             <div>
               <p className="text-[11px] tracking-[0.26em] text-muted-foreground uppercase">
-                Household planner
+                Personalized budget planner
               </p>
               <p className="font-medium tracking-tight">
-                Monthly Budget Manager
+                Duitku
               </p>
             </div>
           </div>
