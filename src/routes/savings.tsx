@@ -50,6 +50,7 @@ function SavingsPage() {
         searchable
         searchPlaceholder="Search goals like emergency fund, road tax, travel"
         showDone
+        remainingLabel="Left to fund"
         columns={[
           { key: "name", label: "Goal" },
           { key: "category", label: "Category" },

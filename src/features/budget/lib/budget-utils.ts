@@ -100,6 +100,26 @@ export function createEditableMonth(month?: BudgetMonth): BudgetMonth {
       recurring: row.recurring ?? false,
       done: row.done ?? false,
     })),
+    debts: (month.debts ?? []).map((row) => ({
+      ...row,
+      amount: row.amount ?? 0,
+      paid: row.paid ?? 0,
+      dueDate: row.dueDate ?? "",
+      category: row.category ?? "",
+      tags: row.tags ?? [],
+      recurring: row.recurring ?? false,
+      done: row.done ?? false,
+    })),
+    lends: (month.lends ?? []).map((row) => ({
+      ...row,
+      amount: row.amount ?? 0,
+      collected: row.collected ?? 0,
+      dueDate: row.dueDate ?? "",
+      category: row.category ?? "",
+      tags: row.tags ?? [],
+      recurring: row.recurring ?? false,
+      done: row.done ?? false,
+    })),
     statement: {
       ...emptyMonth.statement,
       ...month.statement,
@@ -158,6 +178,13 @@ export function computeTotals(month: BudgetMonth, monthKey: string): BudgetTotal
     (sum, row) => sum + toNumber(row.amount),
     0
   )
+  const debtTotal = month.debts.reduce((sum, row) => sum + toNumber(row.amount), 0)
+  const debtPaid = month.debts.reduce((sum, row) => sum + toNumber(row.paid), 0)
+  const lendTotal = month.lends.reduce((sum, row) => sum + toNumber(row.amount), 0)
+  const lendCollected = month.lends.reduce(
+    (sum, row) => sum + toNumber(row.collected),
+    0
+  )
   const savingsTarget = month.savingsGoals.reduce(
     (sum, row) => sum + toNumber(row.target),
     0
@@ -178,6 +205,20 @@ export function computeTotals(month: BudgetMonth, monthKey: string): BudgetTotal
     (sum, row) => sum + (row.done ? 0 : toNumber(row.amount)),
     0
   )
+  const debtLeftToPay = month.debts.reduce((sum, row) => {
+    if (row.done) {
+      return sum
+    }
+
+    return sum + Math.max(0, toNumber(row.amount) - toNumber(row.paid))
+  }, 0)
+  const lendLeftToCollect = month.lends.reduce((sum, row) => {
+    if (row.done) {
+      return sum
+    }
+
+    return sum + Math.max(0, toNumber(row.amount) - toNumber(row.collected))
+  }, 0)
   const savingsLeftToFund = month.savingsGoals.reduce((sum, row) => {
     if (row.done) {
       return sum
@@ -200,10 +241,18 @@ export function computeTotals(month: BudgetMonth, monthKey: string): BudgetTotal
     creditBudget,
     creditActual,
     installmentTotal,
+    debtTotal,
+    debtPaid,
+    debtLeftToPay,
+    lendTotal,
+    lendCollected,
+    lendLeftToCollect,
+    netExposure: lendLeftToCollect - debtLeftToPay,
     expenseLeftToPay,
     creditLeftToPay,
     installmentLeftToPay,
-    totalLeftToPay: expenseLeftToPay + creditLeftToPay + installmentLeftToPay,
+    totalLeftToPay:
+      expenseLeftToPay + creditLeftToPay + installmentLeftToPay + debtLeftToPay,
     remainingBudget: incomeTotal - expenseBudget,
     actualBalance: incomeTotal - expenseActual,
     creditCleared,
@@ -216,7 +265,11 @@ export function computeTotals(month: BudgetMonth, monthKey: string): BudgetTotal
     savingsSaved,
     savingsLeftToFund,
     committedTotal:
-      expenseBudget + creditBudget + installmentTotal + plannedStatementPayment,
+      expenseBudget +
+      creditBudget +
+      installmentTotal +
+      plannedStatementPayment +
+      debtLeftToPay,
   }
 }
 
@@ -303,6 +356,8 @@ export function createBudgetAlerts(month: BudgetMonth, totals: BudgetTotals): Bu
     ...month.creditCard,
     ...month.installments,
     ...month.savingsGoals,
+    ...month.debts,
+    ...month.lends,
   ].filter((row) => row.dueDate && !row.done && row.dueDate < new Date().toISOString().slice(0, 10)).length
 
   if (overdueCount > 0) {

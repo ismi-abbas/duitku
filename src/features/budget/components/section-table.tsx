@@ -49,6 +49,7 @@ type SectionTableProps<Section extends BudgetSection> = {
   searchPlaceholder?: string
   searchable?: boolean
   showDone?: boolean
+  remainingLabel?: string
 }
 
 export function SectionTable<Section extends BudgetSection>({
@@ -61,6 +62,7 @@ export function SectionTable<Section extends BudgetSection>({
   searchPlaceholder,
   searchable = false,
   showDone = false,
+  remainingLabel = "Left to pay",
 }: SectionTableProps<Section>) {
   const { deleteRow, toggleDone, upsertRow } = useBudgetStore()
   const [query, setQuery] = useState("")
@@ -469,7 +471,7 @@ export function SectionTable<Section extends BudgetSection>({
                   <p className="font-medium">Totals</p>
                   {showDone ? (
                     <p className="text-sm text-muted-foreground">
-                      Left to pay {currency.format(leftToPay)}
+                      {remainingLabel} {currency.format(leftToPay)}
                     </p>
                   ) : null}
                 </div>
@@ -566,6 +568,30 @@ function createEmptyRow<Section extends BudgetSection>(
         name: "",
         target: 0,
         saved: 0,
+        dueDate: "",
+        category: "",
+        tags: [],
+        recurring: false,
+        done: false,
+      } as unknown as BudgetRowMap[Section]
+    case "debts":
+      return {
+        id: "",
+        name: "",
+        amount: 0,
+        paid: 0,
+        dueDate: "",
+        category: "",
+        tags: [],
+        recurring: false,
+        done: false,
+      } as unknown as BudgetRowMap[Section]
+    case "lends":
+      return {
+        id: "",
+        name: "",
+        amount: 0,
+        collected: 0,
         dueDate: "",
         category: "",
         tags: [],

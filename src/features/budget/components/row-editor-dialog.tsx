@@ -43,15 +43,6 @@ export function RowEditorDialog<T extends Record<string, unknown>>({
 }: RowEditorDialogProps<T>) {
   const [form, setForm] = useState(initialValues)
 
-  const actualSourceKey =
-    "actual" in form
-      ? "budget" in form
-        ? "budget"
-        : "estimate" in form
-          ? "estimate"
-          : null
-      : null
-
   useEffect(() => {
     setForm(initialValues)
   }, [initialValues])
@@ -69,7 +60,7 @@ export function RowEditorDialog<T extends Record<string, unknown>>({
             <div key={field.key} className="grid gap-2">
               <div className="flex items-center justify-between gap-3">
                 <Label htmlFor={field.key}>{field.label}</Label>
-                {field.key === "actual" && actualSourceKey ? (
+                {field.copySourceKey && field.copySourceKey in form ? (
                   <Button
                     type="button"
                     size="xs"
@@ -77,12 +68,12 @@ export function RowEditorDialog<T extends Record<string, unknown>>({
                     onClick={() =>
                       setForm((current) => ({
                         ...current,
-                        actual: current[actualSourceKey],
+                        [field.key]: current[field.copySourceKey as keyof T],
                       }))
                     }
                   >
                     <Copy className="size-3" />
-                    Same as {actualSourceKey === "budget" ? "budget" : "estimate"}
+                    {field.copyLabel ?? `Same as ${field.copySourceKey}`}
                   </Button>
                 ) : null}
               </div>

@@ -152,6 +152,18 @@ export function BudgetProvider({ children }: PropsWithChildren) {
                   (row) => row.recurring || !row.done,
                   (row) => ({ ...row, done: false })
                 ),
+                debts: mergeRows(
+                  targetMonth.debts,
+                  sourceMonth.debts,
+                  (row) => row.recurring || !row.done,
+                  (row) => ({ ...row, paid: 0, done: false })
+                ),
+                lends: mergeRows(
+                  targetMonth.lends,
+                  sourceMonth.lends,
+                  (row) => row.recurring || !row.done,
+                  (row) => ({ ...row, collected: 0, done: false })
+                ),
                 statement: {
                   ...targetMonth.statement,
                   closingDate:

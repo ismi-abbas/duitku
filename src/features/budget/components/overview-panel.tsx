@@ -3,6 +3,7 @@ import {
   ArrowRight,
   CreditCard,
   Goal,
+  HandCoins,
   PiggyBank,
   TrendingUp,
   Wallet,
@@ -38,6 +39,8 @@ export function OverviewPanel() {
     ...monthData.creditCard,
     ...monthData.installments,
     ...monthData.savingsGoals,
+    ...monthData.debts,
+    ...monthData.lends,
   ]
     .filter((row) => row.dueDate && !row.done)
     .sort((left, right) => left.dueDate.localeCompare(right.dueDate))
@@ -69,6 +72,14 @@ export function OverviewPanel() {
           value={currency.format(totals.savingsSaved)}
           subtitle={`Left ${currency.format(totals.savingsLeftToFund)}`}
           icon={PiggyBank}
+        />
+        <MetricCard
+          title="Debt & lend"
+          value={currency.format(totals.netExposure)}
+          subtitle={`Debt left ${currency.format(totals.debtLeftToPay)} • Collect ${currency.format(
+            totals.lendLeftToCollect
+          )}`}
+          icon={HandCoins}
         />
         <MetricCard
           title="Runway"
@@ -131,8 +142,8 @@ export function OverviewPanel() {
             )}
 
             <Button asChild className="w-full justify-between">
-              <Link to="/expenses">
-                Open expense planner
+              <Link to="/debt-lend">
+                Open debt & lend tracker
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
@@ -211,7 +222,7 @@ export function OverviewPanel() {
                 ))
               ) : (
                 <div className="border border-dashed p-3 text-xs text-muted-foreground">
-                  Add due dates to expenses, card items, installments, or savings goals to surface them here.
+                  Add due dates to expenses, card items, installments, savings goals, debt payments, or money you lent to surface them here.
                 </div>
               )}
             </div>

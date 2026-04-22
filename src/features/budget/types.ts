@@ -4,6 +4,8 @@ export type BudgetSection =
   | "creditCard"
   | "installments"
   | "savingsGoals"
+  | "debts"
+  | "lends"
 
 export type RecurrenceRule = "none" | "monthly"
 
@@ -78,6 +80,30 @@ export type SavingsGoalRow = {
   done: boolean
 }
 
+export type DebtRow = {
+  id: string
+  name: string
+  amount: number
+  paid: number
+  dueDate: string
+  category: string
+  tags: string[]
+  recurring: boolean
+  done: boolean
+}
+
+export type LendRow = {
+  id: string
+  name: string
+  amount: number
+  collected: number
+  dueDate: string
+  category: string
+  tags: string[]
+  recurring: boolean
+  done: boolean
+}
+
 export type Statement = {
   outstandingBalance: number
   minimumPayment: number
@@ -92,6 +118,8 @@ export type BudgetMonth = {
   creditCard: CreditCardRow[]
   installments: InstallmentRow[]
   savingsGoals: SavingsGoalRow[]
+  debts: DebtRow[]
+  lends: LendRow[]
   statement: Statement
   notes: string
 }
@@ -107,6 +135,8 @@ export type BudgetRowMap = {
   creditCard: CreditCardRow
   installments: InstallmentRow
   savingsGoals: SavingsGoalRow
+  debts: DebtRow
+  lends: LendRow
 }
 
 export type BudgetTotals = {
@@ -118,6 +148,13 @@ export type BudgetTotals = {
   creditBudget: number
   creditActual: number
   installmentTotal: number
+  debtTotal: number
+  debtPaid: number
+  debtLeftToPay: number
+  lendTotal: number
+  lendCollected: number
+  lendLeftToCollect: number
+  netExposure: number
   expenseLeftToPay: number
   creditLeftToPay: number
   installmentLeftToPay: number
@@ -137,4 +174,6 @@ export type EditorField = {
   key: string
   label: string
   type?: "text" | "number" | "date" | "boolean" | "tags"
+  copySourceKey?: string
+  copyLabel?: string
 }

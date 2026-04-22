@@ -19,6 +19,7 @@ const navigation = [
   { to: "/credit-card", label: "Credit Card" },
   { to: "/installments", label: "Installments" },
   { to: "/savings", label: "Savings" },
+  { to: "/debt-lend", label: "Debt & Lend" },
 ] as const
 
 export function AppShell() {
