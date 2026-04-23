@@ -65,13 +65,20 @@ export function AppShell() {
               </SheetContent>
             </Sheet>
 
-            <div>
-              <p className="text-[11px] tracking-[0.26em] text-muted-foreground uppercase">
-                Personalized budget planner
-              </p>
-              <p className="font-medium tracking-tight">
-                Duitku
-              </p>
+            <div className="flex items-center gap-3">
+              <img
+                src="/duitku-icon.png"
+                alt="Duitku icon"
+                className="size-10 rounded-xl border object-cover"
+              />
+              <div>
+                <p className="text-[11px] tracking-[0.26em] text-muted-foreground uppercase">
+                  Personalized budget planner
+                </p>
+                <p className="font-medium tracking-tight">
+                  Duitku
+                </p>
+              </div>
             </div>
           </div>
 
