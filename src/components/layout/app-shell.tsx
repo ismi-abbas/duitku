@@ -1,4 +1,4 @@
-import { Menu, Moon, Sun } from "lucide-react"
+import { Download, Menu, Moon, Sun } from "lucide-react"
 import { Link, Outlet, useRouterState } from "@tanstack/react-router"
 
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { useTheme } from "@/components/theme-provider"
+import { usePwaPrompt } from "@/hooks/use-pwa"
 
 const navigation = [
   { to: "/", label: "Overview" },
@@ -27,6 +28,7 @@ export function AppShell() {
     select: (state) => state.location.pathname,
   })
   const { theme, setTheme } = useTheme()
+  const { canInstall, installApp, isInstalled, isOnline } = usePwaPrompt()
 
   return (
     <div className="min-h-screen bg-background">
@@ -100,6 +102,26 @@ export function AppShell() {
           </nav>
 
           <div className="flex items-center gap-2">
+            {!isOnline ? (
+              <span className="hidden rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground sm:inline-flex">
+                Offline
+              </span>
+            ) : null}
+
+            {canInstall && !isInstalled ? (
+              <Button
+                variant="outline"
+                size="icon-sm"
+                onClick={() => {
+                  void installApp()
+                }}
+                aria-label="Install Duitku app"
+                title="Install Duitku app"
+              >
+                <Download className="size-4" />
+              </Button>
+            ) : null}
+
             <Button
               variant="outline"
               size="icon-sm"
